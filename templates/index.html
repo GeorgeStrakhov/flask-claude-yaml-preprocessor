@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     const spinner = submitBtn.querySelector('.spinner-border');
     const resultPre = document.getElementById('result');
-    // Remove unused secretCode input reference
+    const secretCodeInput = document.getElementById('secretCode');
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
