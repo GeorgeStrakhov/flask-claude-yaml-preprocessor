@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Authentication Required</h2>
+                
+                <div class="alert alert-info mb-4" role="alert">
+                    <p class="mb-0">Please enter your secret code to access the application.</p>
+                </div>
+
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="secretCode" class="form-label">Secret Code</label>
+                        <input type="password" class="form-control" id="secretCode" placeholder="Enter your secret code" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="loginBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            Login
+                        </button>
+                    </div>
+                </form>
+
+                <div id="errorMessage" class="alert alert-danger mt-3 d-none">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const spinner = loginBtn.querySelector('.spinner-border');
+    const errorDiv = document.getElementById('errorMessage');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        loginBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        errorDiv.classList.add('d-none');
+        
+        try {
+            const response = await fetch('/api/verify-auth', {
+                method: 'GET',
+                headers: {
+                    'X-Secret-Code': document.getElementById('secretCode').value
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Store the secret code in session storage
+                sessionStorage.setItem('secretCode', document.getElementById('secretCode').value);
+                // Redirect to main page
+                window.location.href = '/';
+            } else {
+                errorDiv.textContent = data.error || 'Invalid secret code';
+                errorDiv.classList.remove('d-none');
+            }
+        } catch (error) {
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.remove('d-none');
+        } finally {
+            loginBtn.disabled = false;
+            spinner.classList.add('d-none');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@ import os
 import yaml
 import uuid
 from functools import wraps
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
 from utils.claude_client import process_with_claude
 import logging
@@ -26,6 +26,7 @@ CORS(app, resources={
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "default_secret_key")
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['PERMANENT_SESSION_LIFETIME'] = 7200  # 2 hours session lifetime
 
 # Load system prompt
 try:
@@ -38,13 +39,23 @@ except FileNotFoundError:
 def require_secret_code(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        secret_code = request.headers.get('X-Secret-Code')
+        if request.endpoint == 'verify_auth':
+            # For verification endpoint, check header
+            secret_code = request.headers.get('X-Secret-Code')
+        else:
+            # For other endpoints, check session first, then header
+            secret_code = session.get('secret_code') or request.headers.get('X-Secret-Code')
+        
         expected_code = os.environ.get('APP_SECRET_CODE')
         
         if not secret_code or secret_code != expected_code:
             logger.warning("Invalid or missing secret code attempt")
-            return jsonify({'error': 'Invalid or missing secret code'}), 401
+            if request.is_json or request.endpoint == 'verify_auth':
+                return jsonify({'error': 'Invalid or missing secret code'}), 401
+            return redirect(url_for('login'))
             
+        # Store valid secret code in session
+        session['secret_code'] = secret_code
         return f(*args, **kwargs)
     return decorated_function
 
@@ -59,10 +70,18 @@ def verify_auth():
     """Endpoint to verify authentication"""
     return jsonify({'status': 'authenticated', 'message': 'Secret code is valid'}), 200
 
+@app.route('/login')
+def login():
+    """Login page for secret code authentication"""
+    if session.get('secret_code') == os.environ.get('APP_SECRET_CODE'):
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
 @app.route('/')
+@require_secret_code
 def index():
-    """Main page - shows the form without requiring authentication first"""
-    return render_template('index.html', secret_code_required=True)
+    """Main page - requires authentication"""
+    return render_template('index.html')
 
 @app.route('/process', methods=['POST'])
 @require_secret_code
