@@ -58,6 +58,4 @@ Don't hallucinate or invent new facts.
 
 Make sure your YAML has as many questions and answers as possible / meaningful, but not more than 20. Prioritise well.
 
-Always reply in English.
-
 Return a valid YAML document only, with no additional formatting or commentary. No backticks or other marks. Just the yaml itself. Process documents systematically, starting with high-level analysis before moving to detailed extraction.

@@ -1,13 +1,11 @@
 import os
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-from functools import wraps
-import uuid
 import yaml
+import uuid
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
 from utils.claude_client import process_with_claude
 import logging
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 
 # Configure logging for production
 log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
@@ -26,20 +24,11 @@ logger.info(f"Starting application with log level: {log_level}")
 logger.info(f"CORS origins: {os.environ.get('ALLOWED_ORIGINS', '*')}")
 
 app = Flask(__name__)
-
-# Initialize rate limiter
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://"
-)
-
 # Production CORS configuration
 CORS(app, resources={
     r"/*": {
-        "origins": os.environ.get('ALLOWED_ORIGINS', '*').split(','),
-        "methods": ["GET", "POST", "OPTIONS"],
+        "origins": os.environ.get("ALLOWED_ORIGINS", "*").split(","),
+        "methods": ["GET", "POST"],
         "allow_headers": ["Content-Type", "X-Secret-Code"],
         "supports_credentials": True
     }
@@ -54,16 +43,6 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,  # Prevent JavaScript access to session cookie
     SESSION_COOKIE_SAMESITE='Lax'  # CSRF protection
 )
-
-@app.after_request
-def add_security_headers(response):
-    """Add security headers to each response"""
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' https://cdn.replit.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:;"
-    return response
 
 # Load system prompt
 try:
@@ -122,7 +101,6 @@ def index():
 
 @app.route('/process', methods=['POST'])
 @require_secret_code
-@limiter.limit("30 per minute")
 def process():
     try:
         text_input = request.form.get('text', '')
