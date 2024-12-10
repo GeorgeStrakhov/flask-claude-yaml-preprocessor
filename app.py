@@ -15,18 +15,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# Configure CORS - in production, update origins based on your requirements
+# Production CORS configuration
 CORS(app, resources={
     r"/*": {
-        "origins": os.environ.get("ALLOWED_ORIGINS", "*"),
+        "origins": os.environ.get("ALLOWED_ORIGINS", "*").split(","),
         "methods": ["GET", "POST"],
-        "allow_headers": ["Content-Type", "X-Secret-Code"]
+        "allow_headers": ["Content-Type", "X-Secret-Code"],
+        "supports_credentials": True
     }
 })
 
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "default_secret_key")
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['PERMANENT_SESSION_LIFETIME'] = 7200  # 2 hours session lifetime
+# Production security settings
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24))
+app.config.update(
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max file size
+    PERMANENT_SESSION_LIFETIME=7200,  # 2 hours session lifetime
+    SESSION_COOKIE_SECURE=True,  # Only send cookies over HTTPS
+    SESSION_COOKIE_HTTPONLY=True,  # Prevent JavaScript access to session cookie
+    SESSION_COOKIE_SAMESITE='Lax'  # CSRF protection
+)
 
 # Load system prompt
 try:
