@@ -53,10 +53,16 @@ def health_check():
     """Health check endpoint for monitoring"""
     return jsonify({'status': 'healthy'}), 200
 
+@app.route('/api/verify-auth')
+@require_secret_code
+def verify_auth():
+    """Endpoint to verify authentication"""
+    return jsonify({'status': 'authenticated', 'message': 'Secret code is valid'}), 200
+
 @app.route('/')
 @require_secret_code
 def index():
-    return render_template('index.html')
+    return render_template('index.html', secret_code_required=True)
 
 @app.route('/process', methods=['POST'])
 @require_secret_code
