@@ -125,7 +125,7 @@ def process():
             if 'QandAs' in parsed_result:
                 qandas = parsed_result['QandAs']
                 qandas_with_uuids = replace_index_with_uuid(qandas)
-                result = yaml.dump(qandas_with_uuids, sort_keys=False)
+                result = yaml.dump(qandas_with_uuids, sort_keys=False, allow_unicode=True)
             else:
                 logger.error("Missing 'QandAs' key in result")
                 raise ValueError("Expected 'QandAs' key in the result")
