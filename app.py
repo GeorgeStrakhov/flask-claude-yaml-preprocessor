@@ -1,7 +1,8 @@
 import os
 import yaml
 import uuid
-from flask import Flask, render_template, request, jsonify
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, session
 from utils.claude_client import process_with_claude
 import logging
 
@@ -21,13 +22,27 @@ except FileNotFoundError:
     logger.error("System prompt file not found")
     SYSTEM_PROMPT = "Please process the following and return YAML:"
 
+def require_secret_code(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        secret_code = request.headers.get('X-Secret-Code')
+        expected_code = os.environ.get('APP_SECRET_CODE')
+        
+        if not secret_code or secret_code != expected_code:
+            return jsonify({'error': 'Invalid or missing secret code'}), 401
+            
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 @app.route('/')
+@require_secret_code
 def index():
     return render_template('index.html')
 
 
 @app.route('/process', methods=['POST'])
+@require_secret_code
 def process():
     try:
         text_input = request.form.get('text', '')
