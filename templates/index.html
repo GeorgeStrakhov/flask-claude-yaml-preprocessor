@@ -7,7 +7,6 @@
             <div class="card-body">
                 <h2 class="card-title mb-4">Text/PDF Processor</h2>
                 
-                {% if secret_code_required %}
                 <div class="alert alert-info mb-4" role="alert">
                     <h4 class="alert-heading">Authentication Required</h4>
                     <p>This application requires a secret code for access. Please provide your secret code in the field below.</p>
@@ -16,7 +15,6 @@
                     <label for="secretCode" class="form-label">Secret Code</label>
                     <input type="password" class="form-control" id="secretCode" placeholder="Enter your secret code">
                 </div>
-                {% endif %}
                 
                 <form id="processorForm" enctype="multipart/form-data">
                     <div class="mb-3">

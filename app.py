@@ -60,8 +60,8 @@ def verify_auth():
     return jsonify({'status': 'authenticated', 'message': 'Secret code is valid'}), 200
 
 @app.route('/')
-@require_secret_code
 def index():
+    """Main page - shows the form without requiring authentication first"""
     return render_template('index.html', secret_code_required=True)
 
 @app.route('/process', methods=['POST'])
