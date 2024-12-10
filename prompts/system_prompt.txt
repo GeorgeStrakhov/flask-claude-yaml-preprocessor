@@ -1,0 +1,1 @@
+Please analyze the following content and provide a structured response in YAML format.

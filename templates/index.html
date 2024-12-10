@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Text/PDF Processor</h2>
+                
+                <form id="processorForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="textInput" class="form-label">Text Input</label>
+                        <textarea class="form-control" id="textInput" name="text" rows="5" placeholder="Paste your text here..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="pdfFile" class="form-label">PDF File</label>
+                        <input type="file" class="form-control" id="pdfFile" name="pdf" accept=".pdf">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            Process
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-4">
+                    <label class="form-label">Result (YAML)</label>
+                    <pre id="result" class="form-control" style="min-height: 200px; white-space: pre-wrap;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
